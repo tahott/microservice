@@ -26,6 +26,7 @@ exports.onRequest = (res, method, pathname, params, cb) => {
 
 let register = (method, pathname, params, cb) => {
     let response = {
+        key: params.key,
         errorcode: 0,
         errormessage: "success"
     };
@@ -53,7 +54,7 @@ let register = (method, pathname, params, cb) => {
                     })
                 } else {
                     let goods = new Goods();
-                    goods._id = results.length + 1;
+                    goods._id = results[results.length-1]._id + 1;
                     goods.name = params.name;
                     goods.category = params.category;
                     goods.price = params.price;
@@ -65,7 +66,11 @@ let register = (method, pathname, params, cb) => {
                 }
             }
         ).catch(
-            error => cb(error)
+            error => {
+                response.errorcode = 1;
+                response.errormessage = error.message;
+                cb(response);
+            }
         )
     }
 }
@@ -92,7 +97,7 @@ let inquiry = (method, pathname, params, cb) => {
     ).catch(
         error => {
             response.errorcode = 1;
-            response.errormessage = error ? error : "no data";
+            response.errormessage = error.message ? error : "no data";
             cb(response);
         }
     )
@@ -100,6 +105,7 @@ let inquiry = (method, pathname, params, cb) => {
 
 let unregister = (method, pathname, params, cb) => {
     let response = {
+        key: params.key,
         errorcode: 0,
         errormessage: "success"
     }
@@ -119,7 +125,7 @@ let unregister = (method, pathname, params, cb) => {
         ).catch(
             error => {
                 response.errorcode = 1;
-                response.errormessage = error;
+                response.errormessage = error.message;
                 cb(response);
             }
         )

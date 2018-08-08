@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// members 모델 추가 필요.
+const Member = require('../models/members.js');
 
 const connect = () => {
     return mongoose.connect('mongodb://localhost:27017/monolithic')
@@ -38,12 +38,12 @@ let register = (method, pathname, params, cb) => {
     } else {
         connect().then(
             () => {
-                let members = new Members();
+                let member = new Member();
 
-                members.username = params.username;
-                members.password = params.password; // 암호화 해야함
+                member.username = params.username;
+                member.password = member.generateHash(params.password);
                 
-                members.save( () => {
+                member.save( () => {
                     cb(response);
                 })
             }
@@ -72,21 +72,24 @@ let inquiry = (method, pathname, params, cb) => {
         cb(response);
     } else {
         connect().then(
-            () => Members.findOne({_id:params.id, password:params.password}).exec()
+            () => Member.findOne({username:params.username}).exec()
         ).then(
             results => {
                 if (results.length == 0) {
                     response.errorcode = 1;
+                    response.errormessage = error ? error : "User not found";
+                } else if (!results.validPassword(params.password, results._doc.password)) {
+                    response.errorcode = 1;
                     response.errormessage = error ? error : "Invalid Password";
                 } else {
-                    response.userid = results[0]._id;
+                    response.userid = results._doc.username;
                 }
                 cb(response);
             }
         ).catch(
             error => {
                 response.errorcode = 1;
-                response.errormessage = error;
+                response.errormessage = error.message;
                 cb(response);
             }
         )
@@ -106,7 +109,7 @@ let unregister = (method, pathname, params, cb) => {
         cb(response);
     } else {
         connect().then(
-            () => Members.remove({_id:params.useranme}).exec()
+            () => Member.remove({username:params.useranme}).exec()
         ).then(
             results => {
                 console.log(results);
