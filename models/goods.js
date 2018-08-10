@@ -4,7 +4,13 @@ const goodsSchema = new mongoose.Schema({
     _id: Number,
     name: String,
     category: String,
-    price: Number,
+    startprice: Number,
+    auction: [{
+        userid: Number,
+        price: Number
+    }],
+    closetime: Date,
+    state: {type: Boolean, default: true},
     description: String
 })
 
